@@ -6,24 +6,18 @@ class ControlFraude_Retail extends ControlFraude{
 
     protected function completeCFVertical(){
         $payDataOperacion = array();
-        $payDataOperacion['CSSTCITY'] = $this->getField($this->customer['shippingcity']);
-        $payDataOperacion['CSSTCOUNTRY'] = $this->getField($this->customer['shippingcountry']);
-        $payDataOperacion['CSSTEMAIL'] = $this->getField($this->customer['billingemail']); 
-        
-        $payDataOperacion['CSSTFIRSTNAME'] = $this->getField($this->customer['shippingfirstname']);
-        if(empty($payDataOperacion['CSSTFIRSTNAME'])){           
-            $payDataOperacion['CSSTFIRSTNAME'] = $this->getField($this->customer['billingfirstname']);
-        }
-        
-        $payDataOperacion['CSSTLASTNAME'] = $this->getField($this->customer['shippinglastname']);
-        if(empty($payDataOperacion['CSSTLASTNAME'])){           
-            $payDataOperacion['CSSTLASTNAME'] = $this->getField($this->customer['billinglastname']);
-        }
 
-        $payDataOperacion['CSSTPHONENUMBER'] = $this->getField(phone::clean($this->customer['billingphone']));
-        $payDataOperacion['CSSTPOSTALCODE'] = $this->getField($this->customer['shippingpostcode']);
-        $payDataOperacion['CSSTSTATE'] = $this->_getStateCode($this->customer['shippingstate']);
-        $payDataOperacion['CSSTSTREET1'] =$this->getField($this->customer['billingaddress']);
+        $payDataOperacion['CSSTCITY'] = $this->getCustomerField('city');
+        $payDataOperacion['CSSTCOUNTRY'] = $this->getCustomerField('country');
+        $payDataOperacion['CSSTEMAIL'] = $this->getCustomerField('email');
+
+        $payDataOperacion['CSSTFIRSTNAME'] = $this->getCustomerField('firstname');
+        $payDataOperacion['CSSTLASTNAME'] = $this->getCustomerField('lastname');
+
+        $payDataOperacion['CSSTPHONENUMBER'] = $this->getField(phone::clean($this->getCustomerField('phone', false)));
+        $payDataOperacion['CSSTPOSTALCODE'] = $this->getCustomerField('postcode');
+        $payDataOperacion['CSSTSTATE'] = $this->_getStateCode($this->getCustomerField('state', false));
+        $payDataOperacion['CSSTSTREET1'] = $this->getCustomerField('address');
 
         //$payDataOperacion['CSMDD12'] = Mage::getStoreConfig('payment/modulodepago2/cs_deadline');
         //$payDataOperacion['CSMDD13'] = $this->getField($this->order->getShippingDescription());
@@ -38,5 +32,16 @@ class ControlFraude_Retail extends ControlFraude{
 
     protected function getCategoryArray($product_id){
         //return Mage::helper('modulodepago2/data')->getCategoryTodopago($product_id);
+    }
+    
+    protected function getCustomerField($key, $clean = true) {
+        $returnData = null;
+        if (isset($this->customer['shipping' . $key])) {
+            $returnData = $this->customer['shipping' . $key];
+        } elseif (isset($this->customer['billing' . $key])) {
+            $returnData = $this->customer['billing' . $key];
+        }
+
+        return $clean ? $this->getField($returnData) : $returnData;
     }
 }
